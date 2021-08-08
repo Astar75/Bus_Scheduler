@@ -15,6 +15,7 @@ class BusScheduleAdapter : RecyclerView.Adapter<BusScheduleAdapter.BusSchedulerV
     fun setItems(newItems: List<BusScheduleTime>) {
         this.items.clear()
         this.items.addAll(newItems)
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = BusSchedulerViewHolder(
@@ -37,7 +38,7 @@ class BusScheduleAdapter : RecyclerView.Adapter<BusScheduleAdapter.BusSchedulerV
         private val textTimeSchedule: TextView = view.findViewById(R.id.textTimeSchedule)
 
         fun bind(item: BusScheduleTime) {
-            textTimeSchedule.text = item.timeString
+            textTimeSchedule.text = String.format("%02d:%02d", item.hours, item.minutes)
         }
     }
 }
