@@ -11,23 +11,30 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.astar.busschedule.data.BusScheduleTime
+import com.astar.busschedule.data.TimeStorage
 import com.astar.busschedule.databinding.FragmentBusScheduleBinding
 import com.astar.busschedule.ui.adapter.BusScheduleAdapter
 
 class BusScheduleFragment : Fragment() {
 
-    private var _binding : FragmentBusScheduleBinding? = null
-    private val binding : FragmentBusScheduleBinding get() = _binding!!
+    private var _binding: FragmentBusScheduleBinding? = null
+    private val binding: FragmentBusScheduleBinding get() = _binding!!
 
     private val busScheduleAdapter = BusScheduleAdapter()
+    private lateinit var timeStorage: TimeStorage
 
-    private var timeList = mutableListOf<BusScheduleTime>()
+    private var destination = "home"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setFragmentResultListener(TimeDialog.REQ_CODE_CHANGE_TIME, onChangeTime)
-    }
 
+        arguments?.let {
+            destination = it.getString("destination", "home")
+        }
+
+        timeStorage = TimeStorage.Base(requireContext(), destination)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,7 +57,16 @@ class BusScheduleFragment : Fragment() {
         setupFabButton()
     }
 
+    override fun onStart() {
+        super.onStart()
+        updateTimeList()
+    }
+
     private fun setupToolbar() = with(binding.toolbar) {
+        when(destination) {
+            "home" -> title = "Автобусы до дома"
+            "work" -> title = "Автобусы до работы"
+        }
         setNavigationOnClickListener {
             findNavController().navigateUp()
         }
@@ -60,8 +76,6 @@ class BusScheduleFragment : Fragment() {
         layoutManager = LinearLayoutManager(requireContext())
         adapter = busScheduleAdapter
         addItemDecoration(DividerItemDecoration(requireContext(), RecyclerView.VERTICAL))
-
-
     }
 
     private fun setupFabButton() = with(binding) {
@@ -78,10 +92,14 @@ class BusScheduleFragment : Fragment() {
     private val onChangeTime: ((String, Bundle) -> Unit) = { _, bundle ->
         val selectedTime = bundle.getParcelable<BusScheduleTime>(TimeDialog.KEY_CHANGE_TIME)
         selectedTime?.let {
-            timeList.add(selectedTime)
-            timeList = timeList.sortedBy { it.hours }.toMutableList()
-            busScheduleAdapter.setItems(timeList)
+            timeStorage.saveTime(selectedTime)
+            updateTimeList()
         }
+    }
+
+    private fun updateTimeList() {
+        val times = timeStorage.fetchTimes().sortedBy { it.hours }
+        busScheduleAdapter.setItems(times)
     }
 
     companion object {

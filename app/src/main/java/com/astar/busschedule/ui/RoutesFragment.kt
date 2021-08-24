@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.navigation.fragment.findNavController
 import com.astar.busschedule.R
 import com.astar.busschedule.databinding.FragmentRoutesBinding
@@ -39,11 +40,14 @@ class RoutesFragment : Fragment() {
         buttonWorkRoute.setOnClickListener(onClickListener)
     }
 
-    private val onClickListener = View.OnClickListener {
-        findNavController().navigate(R.id.action_routesFragment_to_busScheduleFragment)
-    }
-
-    companion object {
+    private val onClickListener = View.OnClickListener { view ->
+        val destination = when(view) {
+            binding.buttonHomeRoute -> "home"
+            binding.buttonWorkRoute -> "work"
+            else -> "home"
+        }
+        val bundle = bundleOf("destination" to destination)
+        findNavController().navigate(R.id.action_routesFragment_to_busScheduleFragment, bundle)
 
     }
 }
